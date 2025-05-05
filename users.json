@@ -1,0 +1,20 @@
+[
+  {
+    "email": "example@gmail.com",
+    "password": "example1!",
+    "username": "user1",
+    "active": true
+  },
+  {
+    "email": "example2@gmail.com",
+    "password": "example2!",
+    "username": "user2",
+    "active": true
+  },
+  {
+    "email": "test@test.com",
+    "password": "test",
+    "username": "testuser",
+    "active": true
+  }
+]
