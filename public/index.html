@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multiplayer Game Chat</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: white; margin: 0; padding: 0; }
+    #login, #chat-container { display: none; }
+    #chat-box { height: 200px; overflow-y: scroll; background: #222; padding: 10px; }
+    .red { color: red; }
+    iframe { width: 100%; height: 400px; border: none; }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h2>Create Account</h2>
+    <p>New user? Create email and password for user login. Those are both required to play.</p>
+    <input id="email" placeholder="Email"><br>
+    <input id="password" type="password" placeholder="Password"><br>
+    <input id="username" placeholder="Username"><br>
+    <button onclick="login()">Start Game</button>
+    <p id="login-error" style="color: red;"></p>
+  </div>
+
+  <div id="chat-container">
+    <iframe src="https://michaelcodes192.github.io/Slope-v2/" title="Game"></iframe>
+    <div id="chat-box" class="red">🛑 Hey players, this is our game chat, don't be disrespectful, follow game rules, and don't cheat. Thank you!</div>
+    <input id="msg" placeholder="Type message..." autofocus>
+    <button onclick="sendMsg()">Send</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let username = "";
+
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      username = document.getElementById('username').value;
+
+      fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email, password, username })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('login').style.display = 'none';
+          document.getElementById('chat-container').style.display = 'block';
+          socket.emit('register user', username);
+        } else {
+          document.getElementById('login-error').textContent = data.error;
+        }
+      });
+    }
+
+    function sendMsg() {
+      const input = document.getElementById('msg');
+      if (input.value.trim()) {
+        socket.emit('chat message', input.value.trim());
+        input.value = '';
+      }
+    }
+
+    socket.on('chat message', msg => {
+      const div = document.createElement('div');
+      div.textContent = msg;
+      div.style.color = msg.includes(':') ? 'white' : 'red';
+      document.getElementById('chat-box').appendChild(div);
+    });
+
+    // Show login screen by default
+    document.getElementById('login').style.display = 'block';
+  </script>
+</body>
+</html>

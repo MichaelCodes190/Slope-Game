@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: white; padding: 20px; }
+    table { width: 100%; background: #222; border-collapse: collapse; }
+    th, td { padding: 8px; border: 1px solid #444; }
+    .inactive { color: #888; }
+  </style>
+</head>
+<body>
+  <h2>Admin Login</h2>
+  <input id="adminUser" placeholder="Username"><br>
+  <input id="adminPass" type="password" placeholder="Password"><br>
+  <button onclick="adminLogin()">Login</button>
+  <p id="loginError" style="color:red;"></p>
+
+  <div id="adminPanel" style="display:none;">
+    <h3>Registered Users</h3>
+    <table id="userTable">
+      <thead>
+        <tr><th>Username</th><th>Email</th><th>Status</th><th>Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    function adminLogin() {
+      const username = document.getElementById('adminUser').value;
+      const password = document.getElementById('adminPass').value;
+
+      fetch('/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      }).then(res => {
+        if (res.ok) {
+          document.getElementById('adminPanel').style.display = 'block';
+          loadUsers();
+        } else {
+          document.getElementById('loginError').textContent = 'Invalid admin credentials';
+        }
+      });
+    }
+
+    function loadUsers() {
+      fetch('/admin/users')
+        .then(res => res.json())
+        .then(users => {
+          const tbody = document.querySelector('#userTable tbody');
+          tbody.innerHTML = '';
+          users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${user.username}</td>
+              <td>${user.email}</td>
+              <td class="${user.active ? '' : 'inactive'}">${user.active ? 'Active' : 'Inactive'}</td>
+              <td><button onclick="banUser('${user.username}')">Ban</button></td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    }
+
+    function banUser(username) {
+      fetch('/admin/ban', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      }).then(() => loadUsers());
+    }
+  </script>
+</body>
+</html>
